@@ -7,9 +7,11 @@ namespace HeadlessCore.Actions
     {
         int Id { get; }
         string Name { get; }
+        string Description { get; }
         int Cost { get; }
-        IReadOnlyList<IEffect> Effects { get; }
-        void Cast(ITarget target);
-        void Cast(IEnumerable<ITarget> targets);
+        IReadOnlyList<CStatusEffect> Effects { get; }
+        bool CanCast(ITargetable caster, ITargetable target);
+        void Cast(ITargetable caster, ITargetable target);
+        void Cast(IEnumerable<ITargetable> targets);
     }
 }

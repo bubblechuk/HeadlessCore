@@ -1,46 +1,58 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HeadlessCore
+﻿namespace HeadlessCore
 {
-    public struct Stats
+    public readonly struct Stats
     {
-        private const int minLvl = 0;
-        private const int maxLvl = 99;
+        public static Stats Zero => default;
 
-        public int Caliber = 0;
-        public int Spirituality = 0;
-        public int Tinkering = 0;
-        public int Resonance = 0;
-        public int Willpower = 0;
-        public Stats(int caliber, int spirituality, int tinkering, int resonance, int willpower) {
-            Caliber = Math.Clamp(caliber, minLvl, maxLvl);
-            Spirituality = Math.Clamp(spirituality, minLvl, maxLvl);
-            Tinkering = Math.Clamp(tinkering, minLvl, maxLvl);
-            Resonance = Math.Clamp(resonance, minLvl, maxLvl);
-            Willpower = Math.Clamp(willpower, minLvl, maxLvl);
-        }
-        public static Stats operator+(Stats a, Stats b)
+        public int Caliber { get; }
+        public int Spirituality { get; }
+        public int Tinkering { get; }
+        public int Resonance { get; }
+        public int Willpower { get; }
+
+        public Stats(
+            int caliber = 0,
+            int spirituality = 0,
+            int tinkering = 0,
+            int resonance = 0,
+            int willpower = 0)
         {
-            return new Stats(a.Caliber + b.Caliber, 
-                             a.Spirituality + b.Spirituality,
-                             a.Tinkering + b.Tinkering,
-                             a.Resonance + b.Resonance, 
-                             a.Willpower + b.Willpower);
+            Caliber = caliber;
+            Spirituality = spirituality;
+            Tinkering = tinkering;
+            Resonance = resonance;
+            Willpower = willpower;
+        }
+
+        public Stats Clamp(int min = 0, int max = 99)
+        {
+            return new Stats(
+                Math.Clamp(Caliber, min, max),
+                Math.Clamp(Spirituality, min, max),
+                Math.Clamp(Tinkering, min, max),
+                Math.Clamp(Resonance, min, max),
+                Math.Clamp(Willpower, min, max)
+            );
+        }
+        public static Stats operator +(Stats a, Stats b)
+        {
+            return new Stats(
+                a.Caliber + b.Caliber,
+                a.Spirituality + b.Spirituality,
+                a.Tinkering + b.Tinkering,
+                a.Resonance + b.Resonance,
+                a.Willpower + b.Willpower
+            );
         }
         public static Stats operator -(Stats a, Stats b)
         {
-            return new Stats(a.Caliber - b.Caliber,
-                             a.Spirituality - b.Spirituality,
-                             a.Tinkering - b.Tinkering,
-                             a.Resonance - b.Resonance,
-                             a.Willpower - b.Willpower);
+            return new Stats(
+                a.Caliber - b.Caliber,
+                a.Spirituality - b.Spirituality,
+                a.Tinkering - b.Tinkering,
+                a.Resonance - b.Resonance,
+                a.Willpower - b.Willpower
+            );
         }
     }
 }

@@ -9,6 +9,6 @@ namespace HeadlessCore.Items
 {
     public interface IConsumable
     {
-        bool Use(CBasePlayer target);
+        bool Use(CBaseEntity target);
     }
 }

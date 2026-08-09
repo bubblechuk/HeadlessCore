@@ -17,6 +17,6 @@ namespace HeadlessCore.Items
     {
         EquipmentSlot Slot { get; }
         Stats BonusStats { get; }
-        bool CanEquip(CBasePlayer target);
+        bool CanEquip(CBaseEntity target);
     }
 }

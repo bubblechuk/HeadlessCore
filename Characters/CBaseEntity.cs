@@ -1,16 +1,17 @@
-﻿using HeadlessCore.Effects;
-using System.Net.NetworkInformation;
-using static System.Net.Mime.MediaTypeNames;
+﻿using HeadlessCore.Actions;
+using HeadlessCore.Effects;
 
 namespace HeadlessCore.Characters
 {
-    public abstract class CBasePlayer : ITarget
+    public abstract class CBaseEntity : ITargetable
     {
         public string Name { get; protected set; }
         public string Nickname { get; protected set; }
         public int Level { get; protected set; } = 1;
         public int XP { get; protected set; } = 0;
         public int RequiredXP => (int)(100 * Math.Pow(Level, 1.5));
+        private readonly List<CStatusEffect> _activeStatuses = new();
+        private readonly List<IAction> _actions = new();
         public Stats BaseStats { get; protected set; }
         public Stats BonusStats { get; protected set; }
         public Stats TotalStats => BaseStats + BonusStats;
@@ -30,12 +31,11 @@ namespace HeadlessCore.Characters
             get => _currentSP;
             protected set => _currentSP = Math.Clamp(value, 0, MaxSP);
         }
-
         public event Action<int>? OnLevelUp;
         public event Action<int>? OnDamageTaken;
         public event Action? OnDeath;
         public event Action<int>? OnHealed;
-        protected CBasePlayer(string name, string nickname, Stats baseStats)
+        protected CBaseEntity(string name, string nickname, Stats baseStats)
         {
             Name = name;
             Nickname = nickname;
@@ -59,11 +59,11 @@ namespace HeadlessCore.Characters
                 OnLevelUp?.Invoke(Level);
             }
         }
-        public virtual void TakeDamage(int damage)
+        public virtual void TakeDamage(int amount)
         {
-            if (damage <= 0 || IsDead) return;
-            HP -= damage;
-            OnDamageTaken?.Invoke(damage);
+            if (amount <= 0 || IsDead) return;
+            HP -= amount;
+            OnDamageTaken?.Invoke(amount);
             if (IsDead)
             {
                 OnDeath?.Invoke();
@@ -94,9 +94,55 @@ namespace HeadlessCore.Characters
             if (amount <= 0 || IsDead) return;
             SP += amount;
         }
-        public void ApplyEffect(IEffect effect)
+        protected virtual void Death()
         {
-            //...
+        }
+        protected virtual void CheckLevelUp()
+        {
+        }
+        public void ApplyStatus(CStatusEffect status)
+        {
+            _activeStatuses.Add(status);
+            status.OnApply(this);
+            RecalculateStats();
+        }
+        public void RemoveStatus(CStatusEffect status)
+        {
+            if (_activeStatuses.Remove(status))
+            {
+                status.OnRemove(this);
+                RecalculateStats();
+            }
+        }
+        public void TickStatuses()
+        {
+            foreach (var status in _activeStatuses.ToList())
+            {
+                status.OnTurnTick(this);
+            }
+
+            RecalculateStats();
+        }
+        public void RecalculateStats()
+        {
+            Stats accumulatedBonus = Stats.Zero;
+
+            foreach (var status in _activeStatuses)
+            {
+                accumulatedBonus += status.GetStatModifier();
+            }
+
+            BonusStats = accumulatedBonus;
+
+            _currentHP = Math.Clamp(_currentHP, 0, MaxHP);
+            _currentSP = Math.Clamp(_currentSP, 0, MaxSP);
+        }
+        public void UseAction(IAction action, ITargetable target)
+        {
+            if (action.CanCast(this, target))
+            {
+                action.Cast(this, target);
+            }
         }
     }
 }
