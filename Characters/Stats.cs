@@ -1,4 +1,4 @@
-﻿namespace HeadlessCore
+﻿namespace HeadlessCore.Characters
 {
     public readonly struct Stats
     {

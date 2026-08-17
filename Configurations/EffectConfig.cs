@@ -1,4 +1,5 @@
-﻿using HeadlessCore.Effects;
+﻿using HeadlessCore.Characters;
+using HeadlessCore.Effects;
 
 namespace HeadlessCore.Configurations
 {

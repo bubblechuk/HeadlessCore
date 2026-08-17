@@ -16,9 +16,9 @@ namespace HeadlessCore.Actions
     {
         Physical
     }
-    public abstract class CBaseAction
+    public abstract class CBaseAction : IAction
     {
-        public int Id { get; }
+        public string Id { get; }
         public string Name { get; }
         public string Description { get; }
         public int Cost { get; }
@@ -29,7 +29,7 @@ namespace HeadlessCore.Actions
         public IReadOnlyList<CStatusEffect> Effects => _effects;
         protected readonly List<CStatusEffect> _effects;
         protected CBaseAction(
-            int id,
+            string id,
             string name,
             string description,
             int cost,
@@ -50,30 +50,27 @@ namespace HeadlessCore.Actions
             _effects = effects?.ToList() ?? new List<CStatusEffect>();
         }
 
-        public virtual bool CanCast(ITargetable caster, ITargetable target)
-            => CanCast(caster, new[] { target });
-
-        public virtual bool CanCast(ITargetable caster, IReadOnlyList<ITargetable> targets)
+        public virtual bool CanCast(ITargetable caster, ITargetable target, bool ignoreCost = false)
+            => CanCast(caster, new[] { target }, ignoreCost);
+        public virtual bool CanCast(ITargetable caster, IReadOnlyList<ITargetable> targets, bool ignoreCost = false)
         {
             if (caster is not CBaseEntity entity) return false;
-            if (entity.IsDead || !entity.HasEnoughSP(Cost)) return false;
+            if (entity.IsDead) return false;
+            if (!ignoreCost && !entity.HasEnoughSP(Cost)) return false;
             if (targets == null || targets.Count == 0) return false;
 
             return ValidateTargetScope(targets);
         }
-
-        public virtual void Cast(ITargetable caster, ITargetable target)
-            => Cast(caster, new[] { target });
-
-        public virtual void Cast(ITargetable caster, IReadOnlyList<ITargetable> targets)
+        public virtual void Cast(ITargetable caster, ITargetable target, bool ignoreCost = false)
+            => Cast(caster, new[] { target }, ignoreCost);
+        public virtual void Cast(ITargetable caster, IReadOnlyList<ITargetable> targets, bool ignoreCost = false)
         {
-            if (!CanCast(caster, targets)) return;
+            if (!CanCast(caster, targets, ignoreCost)) return;
 
-            if (caster is CBaseEntity entityCaster)
+            if (!ignoreCost && caster is CBaseEntity entityCaster)
             {
                 entityCaster.ConsumeSP(Cost);
             }
-
             foreach (var target in targets)
             {
                 if (target == null) continue;

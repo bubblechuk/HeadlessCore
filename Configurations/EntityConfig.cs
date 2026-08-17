@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace HeadlessCore.Configurations
+﻿namespace HeadlessCore.Configurations
 {
     public class EntityConfig
     {
@@ -13,6 +7,8 @@ namespace HeadlessCore.Configurations
         public string Nickname { get; set; } = string.Empty;
         public int StartingLevel { get; set; } = 1;
         public StatsConfig BaseStats { get; set; } = new();
+        public List<ItemConfig> Inventory { get; init; } = new();
+        public List<string> Equipment { get; init; } = new();
         public List<string> ActionIds { get; set; } = new();
     }
 }

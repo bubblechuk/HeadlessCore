@@ -15,7 +15,7 @@ namespace HeadlessCore.Factories
             {
                 throw new DirectoryNotFoundException();
             }
-            var entitiesFiles = Directory.GetFiles(path, "*.char.json", SearchOption.AllDirectories);
+            var entitiesFiles = Directory.GetFiles(path, "*.entity.json", SearchOption.AllDirectories);
             foreach (var entityFile in entitiesFiles)
             {
                 try
@@ -33,7 +33,7 @@ namespace HeadlessCore.Factories
                     }
                 }
                 catch (Exception ex) {
-                    Console.WriteLine($"[Core] Error loading JSON file: {path}: {ex.Message}");
+                    Console.WriteLine($"[EntityFactory] Error loading JSON file: {path}: {ex.Message}");
                 }
             }
         }

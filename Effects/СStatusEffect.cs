@@ -1,16 +1,11 @@
 ﻿using HeadlessCore.Actions;
 using HeadlessCore.Characters;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace HeadlessCore.Effects
 {
     public abstract class CStatusEffect
     {
-        public string Id { get; protected set; }
+        public string Id { get; protected set; } = string.Empty;
         public bool IsPermanent => RemainingTurns < 0;
         public int RemainingTurns { get; protected set; }
         public virtual Stats GetStatModifier() => Stats.Zero;

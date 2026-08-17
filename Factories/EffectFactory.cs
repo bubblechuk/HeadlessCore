@@ -1,12 +1,6 @@
-﻿using HeadlessCore.Characters;
-using HeadlessCore.Configurations;
+﻿using HeadlessCore.Configurations;
 using HeadlessCore.Effects;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace HeadlessCore.Factories
 {
@@ -40,7 +34,7 @@ namespace HeadlessCore.Factories
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[Core] Error loading JSON file: {path}: {ex.Message}");
+                    Console.WriteLine($"[EffectFactory] Error loading JSON file: {path}: {ex.Message}");
                 }
             }
         }

@@ -1,22 +1,29 @@
 ﻿using HeadlessCore.Actions;
 using HeadlessCore.Configurations;
 using HeadlessCore.Effects;
+using HeadlessCore.Factories;
+using HeadlessCore.Items;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace HeadlessCore.Characters
 {
     public class CBaseEntity : ITargetable
     {
+        public string Id { get; }
         public string Name { get; protected set; } = "SampleName";
         public string Nickname { get; protected set; } = "SampleNickname";
         public int Level { get; protected set; } = 1;
         public int XP { get; protected set; } = 0;
         public int RequiredXP => (int)(100 * Math.Pow(Level, 1.5));
         private readonly List<CStatusEffect> _activeStatuses = new();
-        public IReadOnlyList<CBaseAction> Actions => _actions;
-        private readonly List<CBaseAction> _actions = new List<CBaseAction>(8);
+        public IReadOnlyList<IAction> Actions => _actions;
+        private readonly List<IAction> _actions = new List<IAction>(8);
         public Stats BaseStats { get; protected set; }
         public Stats BonusStats { get; protected set; }
         public Stats TotalStats => BaseStats + BonusStats;
+        public CInventory Inventory { get; } = new();
+        public CEquipment Equipment { get; protected set; } = new();
         public bool IsDead => HP <= 0;
         public bool HasEnoughSP(int amount) => SP >= amount;
         public virtual int MaxHP => 100 + (Level - 1) * 5;
@@ -38,8 +45,9 @@ namespace HeadlessCore.Characters
         public event Action? OnDeath;
         public event Action? OnActionsChanged;
         public event Action<int>? OnHealed;
-        protected CBaseEntity(string name, string nickname, Stats baseStats)
+        protected CBaseEntity(string id, string name, string nickname, Stats baseStats)
         {
+            Id = id;
             Name = name;
             Nickname = nickname;
             BaseStats = baseStats;
@@ -49,11 +57,28 @@ namespace HeadlessCore.Characters
         }
         public CBaseEntity(EntityConfig config) 
         {
+            Id = config.Id;
             Name = config.Name;
             Nickname = config.Nickname;
             BaseStats = config.BaseStats.ToDomainStats();
             Level = config.StartingLevel;
+            _actions = config.ActionIds.Select(aId => ActionFactory.Create(aId)).ToList();
+            foreach (var itemConfig in config.Inventory)
+            {
+                var item = ItemFactory.Create(itemConfig.Id, itemConfig.Count);
+                Inventory.TryAddItem(item);
+            }
+            foreach (var equipId in config.Equipment)
+            {
+                var item = ItemFactory.Create(equipId);
 
+                Inventory.TryAddItem(item);
+
+                if (item is EquipmentItem equipmentItem)
+                {
+                    EquipItem(equipmentItem);
+                }
+            }
         }
         public virtual void AddXP(int amount)
         {
@@ -138,14 +163,14 @@ namespace HeadlessCore.Characters
         public void RecalculateStats()
         {
             Stats accumulatedBonus = Stats.Zero;
+            Stats equipmentStats = Equipment.GetTotalEquipmentStats();
 
             foreach (var status in _activeStatuses)
             {
                 accumulatedBonus += status.GetStatModifier();
             }
 
-            BonusStats = accumulatedBonus;
-
+            BonusStats = accumulatedBonus + equipmentStats;
             _currentHP = Math.Clamp(_currentHP, 0, MaxHP);
             _currentSP = Math.Clamp(_currentSP, 0, MaxSP);
         }
@@ -168,6 +193,17 @@ namespace HeadlessCore.Characters
             {
                 action.Cast(this, targets);
             }
+        }
+        public bool UseItem(ConsumableItem item, ITargetable target)
+            => UseItem(item, new[] { target });
+        public bool UseItem(ConsumableItem item, IReadOnlyList<ITargetable> targets)
+        {
+            if (item.Use(this, targets))
+            {
+                Inventory.CleanEmptyStacks();
+                return true;
+            }
+            return false;
         }
         public void LearnAction(CBaseAction action)
         {
@@ -195,6 +231,37 @@ namespace HeadlessCore.Characters
             _actions[slotId] = newAction;
             OnActionsChanged?.Invoke();
             return true;
+        }
+        public bool EquipItem(EquipmentItem item)
+        {
+            if (!item.CanEquip(this)) return false;
+            if (!Inventory.Items.Contains(item)) return false;
+            if (Equipment.TryEquip(item, out var unequippedItem))
+            {
+                Inventory.RemoveItem(item);
+                if (unequippedItem != null)
+                {
+                    Inventory.TryAddItem(unequippedItem);
+                }
+                RecalculateStats();
+                return true;
+            }
+
+            return false;
+        }
+        public bool UnequipItem(EquipmentSlot slot)
+        {
+            if (Equipment.TryUnequip(slot, out var unequippedItem) && unequippedItem != null)
+            {
+                if (Inventory.TryAddItem(unequippedItem))
+                {
+                    RecalculateStats();
+                    return true;
+                }
+                Equipment.TryEquip(unequippedItem, out _);
+            }
+
+            return false;
         }
         public virtual void Die() { }
         public virtual void OnLevelUpStats() { }
