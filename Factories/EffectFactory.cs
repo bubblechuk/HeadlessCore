@@ -1,6 +1,7 @@
 ﻿using HeadlessCore.Configurations;
 using HeadlessCore.Effects;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HeadlessCore.Factories
 {
@@ -13,28 +14,31 @@ namespace HeadlessCore.Factories
             _configs.Clear();
             if (!Directory.Exists(path))
             {
-                throw new DirectoryNotFoundException();
+                throw new DirectoryNotFoundException($"Directory \"{path}\" not found");
             }
-            var entitiesFiles = Directory.GetFiles(path, "*.effect.json", SearchOption.AllDirectories);
-            foreach (var entityFile in entitiesFiles)
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            jsonOptions.Converters.Add(new JsonStringEnumConverter());
+            var effectsFiles = Directory.GetFiles(path, "*.effect.json", SearchOption.AllDirectories);
+            foreach (var effectFile in effectsFiles)
             {
                 try
                 {
-                    var entityContent = File.ReadAllText(entityFile);
-                    var config = JsonSerializer.Deserialize<EffectConfig>(entityContent,
-                                                                          new JsonSerializerOptions()
-                                                                          {
-                                                                              PropertyNameCaseInsensitive = true
-                                                                          }
+                    var effectContent = File.ReadAllText(effectFile);
+                    var config = JsonSerializer.Deserialize<EffectConfig>(effectContent,
+                                                                          jsonOptions
                     );
                     if (config != null && !string.IsNullOrEmpty(config.Id))
                     {
                         _configs[config.Id] = config;
                     }
+                    CoreLogger.LogDebug($"{Path.GetRelativePath(path, effectFile)} loaded");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[EffectFactory] Error loading JSON file: {path}: {ex.Message}");
+                    throw new JsonException($"Error loading JSON file: {effectFile}: {ex.Message}");
                 }
             }
         }
@@ -42,7 +46,7 @@ namespace HeadlessCore.Factories
         {
             if (!_configs.TryGetValue(id, out var config) || config == null)
             {
-                throw new KeyNotFoundException();
+                throw new KeyNotFoundException($"Effect \"{id}\" not found");
             }
 
             return config.ToDomain();

@@ -1,6 +1,7 @@
-﻿using HeadlessCore.Configurations;
-using HeadlessCore.Actions;
+﻿using HeadlessCore.Actions;
+using HeadlessCore.Configurations;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HeadlessCore.Factories
 {
@@ -13,28 +14,31 @@ namespace HeadlessCore.Factories
             _configs.Clear();
             if (!Directory.Exists(path))
             {
-                throw new DirectoryNotFoundException();
+                throw new DirectoryNotFoundException($"Directory \"{path}\" not found.");
             }
-            var entitiesFiles = Directory.GetFiles(path, "*.action.json", SearchOption.AllDirectories);
-            foreach (var entityFile in entitiesFiles)
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            jsonOptions.Converters.Add(new JsonStringEnumConverter());
+            var actionsFiles = Directory.GetFiles(path, "*.action.json", SearchOption.AllDirectories);
+            foreach (var actionFile in actionsFiles)
             {
                 try
                 {
-                    var entityContent = File.ReadAllText(entityFile);
-                    var config = JsonSerializer.Deserialize<ActionConfig>(entityContent,
-                                                                          new JsonSerializerOptions()
-                                                                          {
-                                                                              PropertyNameCaseInsensitive = true
-                                                                          }
+                    var actionContent = File.ReadAllText(actionFile);
+                    var config = JsonSerializer.Deserialize<ActionConfig>(actionContent,
+                                                                          jsonOptions
                     );
                     if (config != null && !string.IsNullOrEmpty(config.Id))
                     {
                         _configs[config.Id] = config;
                     }
+                    CoreLogger.LogDebug($"{Path.GetRelativePath(path, actionFile)} loaded");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ActionFactory] Error loading JSON file: {path}: {ex.Message}");
+                    CoreLogger.LogError($"Error loading JSON file: {actionFile}: {ex.Message}");
                 }
             }
         }

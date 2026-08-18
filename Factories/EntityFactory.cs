@@ -1,6 +1,7 @@
 ﻿using HeadlessCore.Characters;
 using HeadlessCore.Configurations;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HeadlessCore.Factories
 {
@@ -13,8 +14,13 @@ namespace HeadlessCore.Factories
             _configs.Clear();
             if (!Directory.Exists(path))
             {
-                throw new DirectoryNotFoundException();
+                throw new DirectoryNotFoundException($"Directory \"{path}\" not found.");
             }
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            jsonOptions.Converters.Add(new JsonStringEnumConverter());
             var entitiesFiles = Directory.GetFiles(path, "*.entity.json", SearchOption.AllDirectories);
             foreach (var entityFile in entitiesFiles)
             {
@@ -22,18 +28,17 @@ namespace HeadlessCore.Factories
                 {
                     var entityContent = File.ReadAllText(entityFile);
                     var config = JsonSerializer.Deserialize<EntityConfig>(entityContent,
-                                                                          new JsonSerializerOptions()
-                                                                          {
-                                                                              PropertyNameCaseInsensitive = true
-                                                                          }
+                                                                          jsonOptions
                     );
                     if (config != null && !string.IsNullOrEmpty(config.Id))
                     {
                         _configs[config.Id] = config;
                     }
+                    CoreLogger.LogDebug($"{Path.GetRelativePath(path, entityFile)} loaded");
+
                 }
                 catch (Exception ex) {
-                    Console.WriteLine($"[EntityFactory] Error loading JSON file: {path}: {ex.Message}");
+                    CoreLogger.LogDebug($"Error loading JSON file: {path}: {ex.Message}");
                 }
             }
         }

@@ -13,6 +13,6 @@ namespace HeadlessCore.Configurations
         public int MaxStackSize { get; init; } = 1;
         public string? ActionId { get; init; }
         public EquipmentSlot Slot { get; init; }
-        public Stats BonusStats { get; init; } = new();
+        public StatsConfig BonusStats { get; init; } = new();
     }
 }

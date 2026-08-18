@@ -16,7 +16,8 @@ namespace HeadlessCore.Characters
         public int Level { get; protected set; } = 1;
         public int XP { get; protected set; } = 0;
         public int RequiredXP => (int)(100 * Math.Pow(Level, 1.5));
-        private readonly List<CStatusEffect> _activeStatuses = new();
+        public IReadOnlyList<CStatusEffect> Statuses => _statuses;
+        private readonly List<CStatusEffect> _statuses = new();
         public IReadOnlyList<IAction> Actions => _actions;
         private readonly List<IAction> _actions = new List<IAction>(8);
         public Stats BaseStats { get; protected set; }
@@ -45,16 +46,16 @@ namespace HeadlessCore.Characters
         public event Action? OnDeath;
         public event Action? OnActionsChanged;
         public event Action<int>? OnHealed;
-        protected CBaseEntity(string id, string name, string nickname, Stats baseStats)
-        {
-            Id = id;
-            Name = name;
-            Nickname = nickname;
-            BaseStats = baseStats;
-            BonusStats = new Stats();
-            _currentHP = MaxHP;
-            _currentSP = MaxSP;
-        }
+        //protected CBaseEntity(string id, string name, string nickname, Stats baseStats)
+        //{
+        //    Id = id;
+        //    Name = name;
+        //    Nickname = nickname;
+        //    BaseStats = baseStats;
+        //    BonusStats = new Stats();
+        //    _currentHP = MaxHP;
+        //    _currentSP = MaxSP;
+        //}
         public CBaseEntity(EntityConfig config) 
         {
             Id = config.Id;
@@ -79,6 +80,8 @@ namespace HeadlessCore.Characters
                     EquipItem(equipmentItem);
                 }
             }
+            _currentHP = MaxHP;
+            _currentSP = MaxSP;
         }
         public virtual void AddXP(int amount)
         {
@@ -132,13 +135,13 @@ namespace HeadlessCore.Characters
         public void ApplyStatus(CStatusEffect status)
         {
             if (status == null || IsDead) return;
-            _activeStatuses.Add(status);
+            _statuses.Add(status);
             status.OnApply(this);
             RecalculateStats();
         }
         public void RemoveStatus(CStatusEffect status)
         {
-            if (_activeStatuses.Remove(status))
+            if (_statuses.Remove(status))
             {
                 status.OnRemove(this);
                 RecalculateStats();
@@ -147,14 +150,14 @@ namespace HeadlessCore.Characters
         public void TickStatuses()
         {
             if (IsDead) return;
-            foreach (var status in _activeStatuses.ToList())
+            foreach (var status in _statuses.ToList())
             {
                 status.OnTurnTick(this);
                 if (IsDead) break;
             }
 
             RecalculateStats();
-            var expiredStatuses = _activeStatuses.Where(s => s.IsExpired).ToList();
+            var expiredStatuses = _statuses.Where(s => s.IsExpired).ToList();
             foreach (var status in expiredStatuses)
             {
                 RemoveStatus(status);
@@ -165,7 +168,7 @@ namespace HeadlessCore.Characters
             Stats accumulatedBonus = Stats.Zero;
             Stats equipmentStats = Equipment.GetTotalEquipmentStats();
 
-            foreach (var status in _activeStatuses)
+            foreach (var status in _statuses)
             {
                 accumulatedBonus += status.GetStatModifier();
             }

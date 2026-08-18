@@ -1,6 +1,7 @@
 ﻿using HeadlessCore.Configurations;
 using HeadlessCore.Items;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace HeadlessCore.Factories
 {
@@ -14,11 +15,15 @@ namespace HeadlessCore.Factories
             _configs.Clear();
             if (!Directory.Exists(path))
             {
-                throw new DirectoryNotFoundException($"[ItemFactory] Path not found: {path}");
+                throw new DirectoryNotFoundException($"Directory \"{path}\" not found.");
             }
 
             var itemFiles = Directory.GetFiles(path, "*.item.json", SearchOption.AllDirectories);
-            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+            var jsonOptions = new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            jsonOptions.Converters.Add(new JsonStringEnumConverter());
 
             foreach (var file in itemFiles)
             {
@@ -31,10 +36,11 @@ namespace HeadlessCore.Factories
                     {
                         _configs[config.Id] = config;
                     }
+                    CoreLogger.LogDebug($"{Path.GetRelativePath(path, file)} loaded");
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"[ItemFactory] Error loading file {file}: {ex.Message}");
+                    Console.WriteLine($"Error loading file {file}: {ex.Message}");
                 }
             }
 
@@ -45,7 +51,7 @@ namespace HeadlessCore.Factories
         {
             if (!_configs.TryGetValue(id, out var config) || config == null)
             {
-                throw new KeyNotFoundException($"[ItemFactory] Item config with ID '{id}' was not found.");
+                throw new KeyNotFoundException($"Item config with ID '{id}' was not found.");
             }
 
             return config.Type switch
@@ -64,7 +70,7 @@ namespace HeadlessCore.Factories
                     config.Name,
                     config.Description,
                     config.Slot,
-                    config.BonusStats
+                    config.BonusStats.ToDomainStats()
                 ),
 
                 _ => new CDefaultItem(

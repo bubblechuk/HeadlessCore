@@ -1,4 +1,5 @@
 ﻿using HeadlessCore.Characters;
+using HeadlessCore.Effects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,9 +20,17 @@ namespace HeadlessCore.Items
 
         public Stats BonusStats { get; }
 
-        public bool CanEquip(ITargetable target)
+        public bool CanEquip(CBaseEntity target)
         {
-            throw new NotImplementedException();
+            if (target == null) return false;
+            foreach (var status in target.Statuses)
+            {
+                if (status.ShouldSuppressItem(this))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }
 }
