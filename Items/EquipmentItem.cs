@@ -10,7 +10,7 @@ namespace HeadlessCore.Items
 {
     public class EquipmentItem : CBaseItem, IEquipable
     {
-        public EquipmentItem(string id, string name, string description, EquipmentSlot slot, Stats bonusStats) : base(id, name, description, maxStackSize: 1, currentStack: 1)
+        public EquipmentItem(string id, EquipmentSlot slot, Stats bonusStats) : base(id, maxStackSize: 1, currentStack: 1)
         {
             Slot = slot;
             BonusStats = bonusStats;

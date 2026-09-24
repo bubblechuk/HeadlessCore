@@ -67,8 +67,6 @@ namespace HeadlessCore.Factories
 
                 _ => new DefaultAction(
                     config.Id,
-                    config.Name,
-                    config.Description,
                     config.Cost,
                     config.Scope,
                     config.ActionType,

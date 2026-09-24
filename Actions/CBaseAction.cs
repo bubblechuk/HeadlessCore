@@ -19,8 +19,8 @@ namespace HeadlessCore.Actions
     public abstract class CBaseAction : IAction
     {
         public string Id { get; }
-        public string Name { get; }
-        public string Description { get; }
+        //public string Name { get; }
+        //public string Description { get; }
         public int Cost { get; }
         public TargetScope Scope { get; }
         public DamageType ActionType { get; }
@@ -30,8 +30,6 @@ namespace HeadlessCore.Actions
         protected readonly List<CStatusEffect> _effects;
         protected CBaseAction(
             string id,
-            string name,
-            string description,
             int cost,
             TargetScope scope,
             DamageType actionType,
@@ -40,8 +38,6 @@ namespace HeadlessCore.Actions
             IEnumerable<CStatusEffect>? effects = null)
         {
             Id = id;
-            Name = name;
-            Description = description;
             Cost = cost;
             Scope = scope;
             ActionType = actionType;

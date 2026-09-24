@@ -5,6 +5,7 @@ using HeadlessCore.Factories;
 using HeadlessCore.Items;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using HeadlessCore.Brains;
 
 namespace HeadlessCore.Characters
 {
@@ -20,6 +21,7 @@ namespace HeadlessCore.Characters
         private readonly List<CStatusEffect> _statuses = new();
         public IReadOnlyList<IAction> Actions => _actions;
         private readonly List<IAction> _actions = new List<IAction>(8);
+        public BaseBrain Brain { get; protected set;  }
         public Stats BaseStats { get; protected set; }
         public Stats BonusStats { get; protected set; }
         public Stats TotalStats => BaseStats + BonusStats;
@@ -64,6 +66,7 @@ namespace HeadlessCore.Characters
             BaseStats = config.BaseStats.ToDomainStats();
             Level = config.StartingLevel;
             _actions = config.ActionIds.Select(aId => ActionFactory.Create(aId)).ToList();
+            Brain = BrainFactory.Create(config.BrainTypeId, this);
             foreach (var itemConfig in config.Inventory)
             {
                 var item = ItemFactory.Create(itemConfig.Id, itemConfig.Count);
@@ -177,22 +180,23 @@ namespace HeadlessCore.Characters
             _currentHP = Math.Clamp(_currentHP, 0, MaxHP);
             _currentSP = Math.Clamp(_currentSP, 0, MaxSP);
         }
-        public void UseAction(int slotId, ITargetable target)
+        public void UseAction(string actionId, ITargetable target)
         {
-            if (IsDead || slotId < 0 || slotId >= _actions.Count || target == null) return;
+            if (IsDead || string.IsNullOrEmpty(actionId) || target == null) return;
 
-            var action = _actions[slotId];
-            if (action.CanCast(this, target))
+            var action = _actions.FirstOrDefault(a => a.Id == actionId);
+            if (action != null && action.CanCast(this, target))
             {
                 action.Cast(this, target);
             }
         }
-        public void UseAction(int slotId, IReadOnlyList<ITargetable> targets)
-        {
-            if (IsDead || slotId < 0 || slotId >= _actions.Count || targets == null || targets.Count == 0) return;
 
-            var action = _actions[slotId];
-            if (action.CanCast(this, targets))
+        public void UseAction(string actionId, IReadOnlyList<ITargetable> targets)
+        {
+            if (IsDead || string.IsNullOrEmpty(actionId) || targets == null || targets.Count == 0) return;
+
+            var action = _actions.FirstOrDefault(a => a.Id == actionId);
+            if (action != null && action.CanCast(this, targets))
             {
                 action.Cast(this, targets);
             }

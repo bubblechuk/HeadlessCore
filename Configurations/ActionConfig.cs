@@ -5,8 +5,8 @@ namespace HeadlessCore.Configurations
     public class ActionConfig
     {
         public string Id { get; init; } = string.Empty;
-        public string Name { get; init; } = string.Empty;
-        public string Description { get; init; } = string.Empty;
+        //public string Name { get; init; } = string.Empty;
+        //public string Description { get; init; } = string.Empty;
         public int Cost { get; init; }
         public TargetScope Scope { get; init; }
         public DamageType ActionType { get; init; }

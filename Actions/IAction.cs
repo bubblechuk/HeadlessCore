@@ -5,8 +5,8 @@ namespace HeadlessCore.Actions
     public interface IAction
     {
         string Id { get; }
-        string Name { get; }
-        string Description { get; }
+        //string Name { get; }
+        //string Description { get; }
         int Cost { get; }
         TargetScope Scope { get; }
         DamageType ActionType { get; }

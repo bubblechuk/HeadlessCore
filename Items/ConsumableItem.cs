@@ -9,12 +9,10 @@ namespace HeadlessCore.Items
         public IAction BoundAction { get; }
         public ConsumableItem(
             string id, 
-            string name, 
-            string description,
             string action,
             int maxStackSize = 1, 
             int currentStack = 1
-            ) : base(id, name, description, maxStackSize, currentStack)
+            ) : base(id, maxStackSize, currentStack)
         {
             BoundAction = ActionFactory.Create(action);
         }

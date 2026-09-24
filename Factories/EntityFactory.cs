@@ -7,7 +7,7 @@ namespace HeadlessCore.Factories
 {
     public static class EntityFactory
     {
-        public static Dictionary<string, EntityConfig> _configs = new();
+        private static Dictionary<string, EntityConfig> _configs = new();
         public static bool IsInitialized { get; private set; }
         public static void Initialize(string path)
         {

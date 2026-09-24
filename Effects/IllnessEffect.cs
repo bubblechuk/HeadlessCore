@@ -35,7 +35,7 @@ namespace HeadlessCore.Effects
         {
             if (!TargetType.HasFlag(SuppressionType.Actions)) return false;
 
-            bool tagMatches = BlockedTags.Count == 0 || BlockedTags.Contains(action.Name);
+            bool tagMatches = BlockedTags.Count == 0 || BlockedTags.Contains(action.Id);
             return tagMatches && _rng.NextDouble() < BlockChance;
         }
 

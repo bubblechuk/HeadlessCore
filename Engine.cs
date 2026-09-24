@@ -3,6 +3,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using HeadlessCore.Saves;
 
 namespace HeadlessCore
 {
@@ -35,11 +36,13 @@ namespace HeadlessCore
                 : Path.Combine(baseDirectory, path);
 
             EnsureDirectoriesExist(targetPath);
-
+            
+            Localizator.Initialize(Path.Combine(targetPath, "locales"));
             EffectFactory.Initialize(Path.Combine(targetPath, "effects"));
             ActionFactory.Initialize(Path.Combine(targetPath, "actions"));
             ItemFactory.Initialize(Path.Combine(targetPath, "items"));
             EntityFactory.Initialize(Path.Combine(targetPath, "entities"));
+            SaveManager.FetchSaves();
         }
 
         private static void EnsureDirectoriesExist(string basePath)

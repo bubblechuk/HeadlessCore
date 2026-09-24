@@ -6,15 +6,13 @@ namespace HeadlessCore.Actions
     {
         public DefaultAction(
             string id,
-            string name,
-            string description,
             int cost,
             TargetScope scope,
             DamageType actionType,
             int baseValue = 0,
             float statScaling = 0f,
             IEnumerable<CStatusEffect>? effects = null)
-            : base(id, name, description, cost, scope, actionType, baseValue, statScaling, effects)
+            : base(id, cost, scope, actionType, baseValue, statScaling, effects)
         {
         }
     }

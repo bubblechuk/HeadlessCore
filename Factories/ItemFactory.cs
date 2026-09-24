@@ -58,8 +58,6 @@ namespace HeadlessCore.Factories
             {
                 "Consumable" => new ConsumableItem(
                     config.Id,
-                    config.Name,
-                    config.Description,
                     config.ActionId ?? throw new InvalidOperationException($"Consumable item '{id}' missing ActionId"),
                     config.MaxStackSize,
                     currentStack: count
@@ -67,16 +65,12 @@ namespace HeadlessCore.Factories
 
                 "Equipment" => new EquipmentItem(
                     config.Id,
-                    config.Name,
-                    config.Description,
                     config.Slot,
                     config.BonusStats.ToDomainStats()
                 ),
 
                 _ => new CDefaultItem(
                     config.Id,
-                    config.Name,
-                    config.Description,
                     config.MaxStackSize,
                     currentStack: count
                 )
